@@ -1,9 +1,11 @@
 package com.example.rastgelecek
 
+import android.content.DialogInterface
 import android.content.SharedPreferences
 import androidx.appcompat.app.AppCompatActivity
 import android.os.Bundle
 import android.preference.PreferenceManager
+import android.view.View
 import android.widget.*
 import androidx.appcompat.app.AlertDialog
 import com.google.gson.Gson
@@ -34,21 +36,29 @@ class MainActivity : AppCompatActivity() {
         editText = findViewById<EditText>(R.id.editText)
         button_dataAllRemove = findViewById(R.id.textView_dataAll)
 
-        //Tüm veriyi silme butonu
-        button_dataAllRemove.setOnClickListener {
-            ShowMessage("Uyarı", "Tüm veriyi siliyosun bak dikkat et")
-            deleteAllData()
-        }
-
+        //Listview'ı doldurma
         getListData()
-        if (getListData() == null) {
-            Toast.makeText(this, "Boş liste", Toast.LENGTH_SHORT).show()
-        } else {
+        if (getListData() != null) {
             val list = getListData()
             for (x in list!!) {
                 listViewFit()
             }
         }
+        //Satır tıklama olayı
+        listView.setOnItemClickListener(AdapterView.OnItemClickListener { parent, view, position, id ->
+            ShowMessage(
+                "Uyarı",
+                " ''" + liste.get(position) + "'' Değerini Silmek İstediğine Emin Misin ?",
+                liste.get(position),
+                "satir"
+            )
+        })
+
+        //Tüm veriyi silme butonu
+        button_dataAllRemove.setOnClickListener {
+            ShowMessage("Uyarı", "Tüm veriyi siliyosun bak dikkat et")
+        }
+
         kaydetButton.setOnClickListener {
             val yazi: String = editText.text.toString().trim()
             if (yazi != "") {
@@ -58,8 +68,8 @@ class MainActivity : AppCompatActivity() {
                 ShowMessage(
                     "Tekrar Uyarıyommm",
                     "Faruk ben Akif bida boş veri girip beni Ertuğrula rezil etme rafık :)"
-                )
-                ShowMessage("Uyarı-1", "Faruk ben Ertuğrul boş girme bak unutkanlık var herhalde")
+                ,"kura","kura")
+                ShowMessage("Uyarı-1", "Faruk ben Ertuğrul boş girme bak unutkanlık var herhalde","kura","kura")
             }
 
         }
@@ -67,9 +77,9 @@ class MainActivity : AppCompatActivity() {
         kuraCekButton.setOnClickListener {
             if (liste.size > 0) {
                 val index = random.nextInt(liste.size)
-                ShowMessage("Kura Sonucu", "Sonuç: " + liste.get(index))
+                ShowMessage("Kura Sonucu", "Sonuç: " + liste.get(index),"veri","kura")
             } else {
-                ShowMessage("Uyarıı", "Neyin kurasını çekcen bişey yok ki kaydetmemişsin hiç!!")
+                ShowMessage("Uyarıı", "Neyin kurasını çekcen bişey yok ki kaydetmemişsin hiç!!","veri","kura")
             }
         }
     }
@@ -78,7 +88,29 @@ class MainActivity : AppCompatActivity() {
         val alert = AlertDialog.Builder(this)
         alert.setTitle(title)
         alert.setMessage(message)
-        alert.setPositiveButton("Tamam abi", null)
+        alert.setPositiveButton("Tamam abi") { dialogInterface: DialogInterface, i: Int ->
+            deleteAllData()
+        }
+        alert.setNegativeButton("Silme abi") { dialogInterface: DialogInterface, i: Int ->
+        }
+        alert.show()
+    }
+
+    private fun ShowMessage(title: String, message: String, veri: String, type: String) {
+        val alert = AlertDialog.Builder(this)
+        alert.setTitle(title)
+        alert.setMessage(message)
+        if (type == "satir") {
+            alert.setPositiveButton("Tamam abi") { dialogInterface: DialogInterface, i: Int ->
+                deleteRow(veri)
+            }
+            alert.setNegativeButton("Silme abi") { dialogInterface: DialogInterface, i: Int ->
+            }
+
+        } else if (type == "kura") {
+            alert.setPositiveButton("Tamam abi") { dialogInterface: DialogInterface, i: Int ->
+            }
+        }
         alert.show()
     }
 
@@ -96,6 +128,13 @@ class MainActivity : AppCompatActivity() {
         editor.apply()
     }
 
+    private fun deleteRow(veri: String) {
+        liste.remove(veri)
+        listViewFit()
+        deleteAllData(veri)
+        setListData(liste)
+
+    }
 
     private fun getListData(): ArrayList<String>? {
         val prefs = PreferenceManager.getDefaultSharedPreferences(this)
@@ -123,6 +162,13 @@ class MainActivity : AppCompatActivity() {
         prefs.edit().remove(KEY).apply()
         Toast.makeText(this, "Tüm Veriler Başarıyla Silindi!", Toast.LENGTH_SHORT).show()
         liste.clear()
+        listViewFit()
+    }
+
+    private fun deleteAllData(veri: String) {
+        val prefs = PreferenceManager.getDefaultSharedPreferences(this)
+        prefs.edit().remove(KEY).apply()
+        Toast.makeText(this, "" + veri + " Başarıyla Silindi", Toast.LENGTH_SHORT).show()
         listViewFit()
     }
 
